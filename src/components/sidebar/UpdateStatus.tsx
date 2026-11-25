@@ -4,7 +4,7 @@ import type { AppUpdater, UpdaterStatus } from "../../hooks/useAppUpdater";
 import { cn } from "../../utils/cn";
 
 const isWindows = navigator.userAgent.includes("Windows");
-const REPO_URL = "https://github.com/iput-object/GitSwitch";
+const REPO_URL = "https://github.com/lazyspam/GitSwitch";
 
 function labelFor(status: UpdaterStatus) {
   switch (status.phase) {

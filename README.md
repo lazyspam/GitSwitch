@@ -13,7 +13,7 @@ Runs on Linux, macOS, and Windows.
 ## Install
 
 Download the latest build from the
-[Releases page](https://github.com/iput-object/GitSwitch/releases/latest):
+[Releases page](https://github.com/lazyspam/GitSwitch/releases/latest):
 
 | Platform | File |
 | --- | --- |
