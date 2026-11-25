@@ -71,3 +71,25 @@ jobs:
           releaseDraft: false
           prerelease: false
           args: ${{ matrix.args }}
+
+  # tauri-action writes api.github.com asset URLs into latest.json. Unauthenticated
+  # clients get 60 API calls an hour per IP, so updates fail with a rate limit.
+  # Swap them for the plain download URLs, which have no such limit.
+  fix-updater-urls:
+    needs: build-and-release
+    if: ${{ !cancelled() }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Point latest.json at direct download links
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ github.ref_name }}
+          REPO: ${{ github.repository }}
+        run: |
+          gh release download "$TAG" -R "$REPO" -p latest.json -O latest.json --clobber
+          gh api "repos/$REPO/releases/tags/$TAG" --jq '.assets[] | "\(.url) \(.browser_download_url)"' |
+            while read -r api web; do sed -i "s#\"$api\"#\"$web\"#g" latest.json; done
+          if grep -q 'api.github.com' latest.json; then echo "latest.json still has API URLs"; exit 1; fi
+          gh release upload "$TAG" -R "$REPO" latest.json --clobber
