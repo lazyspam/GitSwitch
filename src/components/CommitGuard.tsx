@@ -1,5 +1,5 @@
 import { useEffect, useState, type FormEvent } from "react";
-import { Check, Plus, X } from "@phosphor-icons/react";
+import { Check, Robot, TerminalWindow, X } from "@phosphor-icons/react";
 import { api, type CommitGuard as GuardState } from "../services/tauri";
 import { Toggle } from "./ui/Toggle";
 import { cn } from "../utils/cn";
@@ -118,7 +118,7 @@ export default function CommitGuard() {
                       : "border-white/10 text-neutral-400 hover:border-white/20 hover:text-neutral-200"
                   )}
                 >
-                  {on ? <Check size={11} weight="bold" /> : <Plus size={11} weight="bold" />}
+                  {on ? <Check size={11} weight="bold" /> : <Robot size={11} weight="bold" />}
                   {preset.name}
                 </button>
               );
@@ -165,12 +165,18 @@ export default function CommitGuard() {
         </form>
 
         {examples.length > 0 && (
-          <div>
-            <span className="text-xs font-medium text-neutral-400">
-              {state.enabled ? "These lines are removed from your commits" : "Would remove these lines from your commits"}
-            </span>
-            <pre className="mt-2 max-h-32 overflow-auto rounded-lg border border-white/6 bg-black/30 px-3 py-2 font-mono text-[11px] leading-relaxed text-neutral-400 select-text">
-              {examples.join("\n")}
+          <div className="overflow-hidden rounded-lg border border-white/6 bg-black/40">
+            <div className="flex items-center gap-1.5 border-b border-white/6 px-3 py-1.5 text-[10px] uppercase tracking-wider text-neutral-500">
+              <TerminalWindow size={12} weight="bold" className="text-primary-400/70" />
+              {state.enabled ? "removed from your commits" : "would be removed"}
+            </div>
+            <pre className="max-h-32 overflow-auto px-3 py-2 font-mono text-[11px] leading-relaxed select-text">
+              {examples.map((line) => (
+                <div key={line} className="flex gap-2">
+                  <span className="text-rose-400/80">-</span>
+                  <span className="text-neutral-500 line-through decoration-rose-400/40">{line}</span>
+                </div>
+              ))}
             </pre>
           </div>
         )}
