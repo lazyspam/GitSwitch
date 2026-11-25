@@ -86,6 +86,10 @@ function App() {
   return (
     <div className="relative h-screen w-screen bg-neutral-950 rounded-2xl overflow-hidden flex flex-col font-sans">
       <Background />
+      {showLayout && (
+        // The sidebar's surface runs the full window height, behind the top bar too.
+        <div className="pointer-events-none absolute inset-y-0 left-0 w-56 border-r border-white/6 bg-white/2" />
+      )}
 
       <AnimatePresence>{showSplash && <Splash />}</AnimatePresence>
 

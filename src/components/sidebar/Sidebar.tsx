@@ -47,7 +47,7 @@ export default function Sidebar({
   return (
     <aside
       data-tauri-drag-region
-      className="flex h-full w-56 flex-col border-r border-white/6 bg-white/2 px-3 py-4"
+      className="flex h-full w-56 flex-col px-3 py-4"
     >
       <nav className="flex flex-col gap-0.5">
         {NAV_ITEMS.map((item) => (
