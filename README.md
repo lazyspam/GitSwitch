@@ -68,13 +68,14 @@ The **⋮** menu on each account also has:
 You can also switch from the **tray icon** without opening the window. Closing
 the window keeps GitSwitch in the tray; use **Quit** from the tray to exit.
 
-## Block AI co-authors
+## Remove AI co-authors
 
-**Settings → Commits → Block AI co-authors** stops a commit when its author or
-a `Co-authored-by:` line matches your list. Pick the agents you want to keep
-out, or add any name or email of your own:
+**Settings → Commits → Remove AI co-authors** quietly deletes the
+`Co-authored-by:` lines that AI agents add to your commits, before the commit
+is saved. The commit goes through, and it's yours alone. Pick the agents, or add
+any name or email of your own:
 
-| Agent | What it adds to a commit | Blocked by |
+| Agent | Line it adds | Matched by |
 | --- | --- | --- |
 | Claude Code | `Co-authored-by: Claude <noreply@anthropic.com>` | `noreply@anthropic.com` |
 | Codex CLI | `Co-authored-by: Codex <noreply@openai.com>` | `noreply@openai.com` |
@@ -84,18 +85,18 @@ out, or add any name or email of your own:
 Cloud agents (Copilot's coding agent, Devin, Jules, Cursor's cloud agents)
 commit on their own machines, so a hook on yours never sees those commits.
 
-A blocked commit fails with the line that matched:
+The terminal shows what was taken out:
 
 ```text
-$ git commit -m "feat: add login"
-GitSwitch blocked this commit:
-  Co-authored-by: Claude <noreply@anthropic.com>
-  matches "noreply@anthropic.com" on your blocked list.
-Remove that line from the message or change the author, or edit the list in GitSwitch > Settings.
+$ git commit -m "feat: add login" -m "Co-authored-by: Claude <noreply@anthropic.com>"
+GitSwitch removed: Co-authored-by: Claude <noreply@anthropic.com>
+[main 1a2b3c4] feat: add login
 ```
 
-Matching ignores case and only looks at the author and `Co-authored-by:`
-lines, so a message that just mentions a name goes through.
+Matching ignores case and only touches `Co-authored-by:` lines, so a message
+that just mentions a name is left alone, and other co-authors stay. A commit
+whose **author** matches is stopped instead, because a hook can't change the
+author.
 
 GitSwitch writes the hooks itself when you turn this on, so it works the same
 on Linux, macOS, and Windows with nothing else to install. It sets a global
@@ -104,7 +105,7 @@ to the hook git would have run without GitSwitch, so your repos' own hooks
 (and any global hooks path you had before) keep working. Turning it off puts
 your previous `core.hooksPath` back.
 
-It's a guard, not a wall:
+Limits:
 
 - `git commit --no-verify` skips it. Aider commits that way unless you pass
   `--git-commit-verify`.
@@ -126,7 +127,7 @@ overrides still win):
 | `~/.gitconfig` | `user.name`, `user.email`, `user.signingkey`, `gpg.format = ssh`, `commit.gpgsign = true` |
 | `~/.ssh/config` | One block per provider host, between `# >>> GitSwitch managed block` markers. Any existing hand-written `Host github.com` (etc.) block is commented out, not deleted, so it can't override GitSwitch. Everything else in the file is left as is. |
 | `~/.ssh/gitswitch/` | Keys you created or pasted in GitSwitch. Keys you pointed at by path stay where they are. |
-| `~/.gitconfig` (only with **Block AI co-authors** on) | `core.hooksPath`, pointing at the `hooks` folder in GitSwitch's data directory. |
+| `~/.gitconfig` (only with **Remove AI co-authors** on) | `core.hooksPath`, pointing at the `hooks` folder in GitSwitch's data directory. |
 
 The list of accounts lives in a small local database in the app's data folder.
 Nothing is sent anywhere except the SSH check and public-profile lookups to

@@ -90,8 +90,8 @@ export default function CommitGuard() {
   return (
     <div className="rounded-xl border border-white/6 bg-white/2 px-4 py-1">
       <Toggle
-        label="Block AI co-authors"
-        description="Stops a commit when its author or a Co-authored-by line matches your list. Works in every repo, and your repos' own hooks still run."
+        label="Remove AI co-authors"
+        description="Quietly deletes Co-authored-by lines that match your list before a commit is saved, so the commit stays yours. Works in every repo, and your repos' own hooks still run."
         checked={state.enabled}
         onChange={(checked) => save(checked, state.blocked)}
       />
@@ -100,7 +100,7 @@ export default function CommitGuard() {
 
       <div className={cn("py-3 flex flex-col gap-3", !state.enabled && "opacity-60")}>
         <div>
-          <span className="text-xs font-medium text-neutral-400">Block these</span>
+          <span className="text-xs font-medium text-neutral-400">Remove these</span>
           <div className="mt-2 flex flex-wrap gap-1.5">
             {PRESETS.map((preset) => {
               const on = presetOn(preset.patterns);
@@ -167,7 +167,7 @@ export default function CommitGuard() {
         {examples.length > 0 && (
           <div>
             <span className="text-xs font-medium text-neutral-400">
-              {state.enabled ? "Commits with these lines are stopped" : "Would stop commits with these lines"}
+              {state.enabled ? "These lines are removed from your commits" : "Would remove these lines from your commits"}
             </span>
             <pre className="mt-2 max-h-32 overflow-auto rounded-lg border border-white/6 bg-black/30 px-3 py-2 font-mono text-[11px] leading-relaxed text-neutral-400 select-text">
               {examples.join("\n")}
@@ -176,10 +176,11 @@ export default function CommitGuard() {
         )}
 
         <p className="text-[11px] leading-relaxed text-neutral-500">
-          Matching ignores case and looks only at the author and Co-authored-by lines, so a
-          message that mentions a name is fine. <code className="text-neutral-400">git commit --no-verify</code>{" "}
-          skips the check (Aider commits that way by default), and so do repos that set their own
-          hooks path (like Husky).
+          Matching ignores case and only touches Co-authored-by lines, so a message that mentions a
+          name is left alone. A commit whose author matches is stopped instead, because a hook
+          can't change the author. <code className="text-neutral-400">git commit --no-verify</code>{" "}
+          skips this (Aider commits that way by default), and so do repos that set their own hooks
+          path (like Husky).
           {state.otherHooksPath && (
             <>
               {" "}Your hooks in <code className="text-neutral-400">{state.otherHooksPath}</code> keep

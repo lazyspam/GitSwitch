@@ -1,9 +1,10 @@
-//! Commit guard: block commits whose author or `Co-authored-by:` lines match a
-//! list of names or emails (for example AI agents that sign themselves in).
+//! Commit guard: remove `Co-authored-by:` lines that match a list of names or
+//! emails (for example AI agents that sign themselves in) before a commit is
+//! saved. A commit whose author matches is stopped, since a hook can't change it.
 //!
 //! It works through a global `core.hooksPath` that points at a folder GitSwitch
 //! owns. That folder holds one copy of `hook.sh` per client hook name: the
-//! `commit-msg` copy runs the check, and every copy then hands off to the hook
+//! `commit-msg` copy cleans the message, and every copy then hands off to the hook
 //! git would have run without GitSwitch (the previous global hooks path, or
 //! the repo's own `.git/hooks`), so existing hooks keep working.
 //!

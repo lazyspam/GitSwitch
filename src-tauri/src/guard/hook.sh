@@ -1,33 +1,48 @@
 #!/bin/sh
 # Installed by GitSwitch (Settings > Commit guard). GitSwitch rewrites this file, so don't edit it.
-# One copy per hook name. For commit-msg it first checks the author and Co-authored-by lines against
-# the blocked list; then every hook hands off to the hook git would have run without GitSwitch.
+# One copy per hook name. For commit-msg it first removes Co-authored-by lines that match the list
+# (and stops a commit whose author matches); then every hook hands off to the hook git would have
+# run without GitSwitch.
 hook=${0##*/}
 dir=$(dirname -- "$0")
 next=""
 
 if [ "$hook" = commit-msg ] && [ -f "$dir/gitswitch-blocked" ] && [ -f "$1" ]; then
+  # 1. Co-authored-by lines that match the list are removed, and the commit goes on.
+  #    Fixed-string, case-insensitive. Comment lines and the `commit -v` diff below the
+  #    scissors are left alone; trailing blank lines left behind are dropped.
+  removed="$1.gitswitch-removed"
+  if awk -v list="$dir/gitswitch-blocked" -v removed="$removed" '
+    BEGIN {
+      while ((getline line < list) > 0) {
+        sub(/\r$/, "", line); sub(/^[ \t]+/, "", line); sub(/[ \t]+$/, "", line)
+        if (line != "" && substr(line, 1, 1) != "#") pats[++n] = tolower(line)
+      }
+    }
+    $0 == "# ------------------------ >8 ------------------------" { cut = 1 }
+    !cut && /^[ \t]*[Cc][Oo]-[Aa][Uu][Tt][Hh][Oo][Rr][Ee][Dd]-[Bb][Yy]:/ {
+      low = tolower($0)
+      for (i = 1; i <= n; i++) if (index(low, pats[i])) { print > removed; next }
+    }
+    !cut && /^[ \t]*$/ { blanks = blanks $0 "\n"; next }
+    { printf "%s", blanks; blanks = ""; print }
+  ' "$1" >"$1.gitswitch-tmp"; then
+    if [ -s "$removed" ]; then
+      cat "$1.gitswitch-tmp" >"$1"
+      sed 's/^[[:space:]]*/GitSwitch removed: /' "$removed" >&2
+    fi
+  fi
+  rm -f "$1.gitswitch-tmp" "$removed"
+
+  # 2. The author can't be rewritten from a hook, so a blocked author stops the commit.
   author=$(git var GIT_AUTHOR_IDENT 2>/dev/null | sed 's/ [0-9][0-9]* [-+][0-9][0-9]*$//')
-  # Drop comment lines and everything below the `commit -v` scissors, then take every
-  # Co-authored-by line. Not `interpret-trailers --parse`: it skips a final paragraph that
-  # mixes prose and trailers, while GitHub still credits the co-author there.
-  coauthors=$(sed -e '/^# -\{24\} >8 -\{24\}$/,$d' -e '/^#/d' "$1" |
-    grep -i '^[[:space:]]*co-authored-by:')
   while IFS= read -r entry || [ -n "$entry" ]; do
     entry=$(printf '%s' "$entry" | tr -d '\r')
     case "$entry" in '' | '#'*) continue ;; esac
-    hit=""
     if printf '%s\n' "$author" | grep -iqF -- "$entry"; then
-      hit="Author: $author"
-    elif [ -n "$coauthors" ]; then
-      hit=$(printf '%s\n' "$coauthors" | grep -iF -- "$entry" | head -n 1)
-    fi
-    if [ -n "$hit" ]; then
       {
-        echo "GitSwitch blocked this commit:"
-        echo "  $hit"
-        echo "  matches \"$entry\" on your blocked list."
-        echo "Remove that line from the message or change the author, or edit the list in GitSwitch > Settings."
+        echo "GitSwitch stopped this commit: the author \"$author\""
+        echo "matches \"$entry\" on your list. Commit as yourself, or edit the list in GitSwitch > Settings."
       } >&2
       exit 1
     fi
