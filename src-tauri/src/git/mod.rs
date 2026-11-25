@@ -46,3 +46,19 @@ pub fn set_global(key: &str, value: &str) -> Result<(), String> {
     }
     Ok(())
 }
+
+/// Remove a `git config --global <key>`. Not being set is fine.
+pub fn unset_global(key: &str) -> Result<(), String> {
+    let out = command("git")
+        .args(["config", "--global", "--unset-all", key])
+        .output()
+        .map_err(|e| format!("Could not run git: {e}"))?;
+    // Exit code 5 means the key wasn't set.
+    if !out.status.success() && out.status.code() != Some(5) {
+        return Err(format!(
+            "git config --unset {key} failed: {}",
+            String::from_utf8_lossy(&out.stderr).trim()
+        ));
+    }
+    Ok(())
+}

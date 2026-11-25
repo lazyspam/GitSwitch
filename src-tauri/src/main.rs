@@ -3,6 +3,7 @@
 mod cli;
 mod database;
 mod git;
+mod guard;
 mod host;
 mod models;
 mod paths;
@@ -73,6 +74,8 @@ fn main() {
         .invoke_handler(tauri::generate_handler![
             host::get_host_info,
             git::git_config,
+            guard::get_commit_guard,
+            guard::set_commit_guard,
             ssh::keys::generate_ssh_key,
             ssh::keys::commit_key,
             ssh::open_ssh_folder,

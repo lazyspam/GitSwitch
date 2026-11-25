@@ -68,6 +68,54 @@ The **⋮** menu on each account also has:
 You can also switch from the **tray icon** without opening the window. Closing
 the window keeps GitSwitch in the tray; use **Quit** from the tray to exit.
 
+## Block AI co-authors
+
+**Settings → Commits → Block AI co-authors** stops a commit when its author or
+a `Co-authored-by:` line matches your list. Pick the agents you want to keep
+out, or add any name or email of your own:
+
+| Agent | What it adds to a commit | Blocked by |
+| --- | --- | --- |
+| Claude Code | `Co-authored-by: Claude <noreply@anthropic.com>` | `noreply@anthropic.com` |
+| Codex CLI | `Co-authored-by: Codex <noreply@openai.com>` | `noreply@openai.com` |
+| Cursor | `Co-authored-by: Cursor <cursoragent@cursor.com>` | `cursoragent@cursor.com` |
+| GitHub Copilot | `Co-authored-by: Copilot <…+Copilot@users.noreply.github.com>` | `Copilot@users.noreply.github.com` |
+
+Cloud agents (Copilot's coding agent, Devin, Jules, Cursor's cloud agents)
+commit on their own machines, so a hook on yours never sees those commits.
+
+A blocked commit fails with the line that matched:
+
+```text
+$ git commit -m "feat: add login"
+GitSwitch blocked this commit:
+  Co-authored-by: Claude <noreply@anthropic.com>
+  matches "noreply@anthropic.com" on your blocked list.
+Remove that line from the message or change the author, or edit the list in GitSwitch > Settings.
+```
+
+Matching ignores case and only looks at the author and `Co-authored-by:`
+lines, so a message that just mentions a name goes through.
+
+GitSwitch writes the hooks itself when you turn this on, so it works the same
+on Linux, macOS, and Windows with nothing else to install. It sets a global
+`core.hooksPath` to a folder in its data directory. Every hook there hands off
+to the hook git would have run without GitSwitch, so your repos' own hooks
+(and any global hooks path you had before) keep working. Turning it off puts
+your previous `core.hooksPath` back.
+
+It's a guard, not a wall:
+
+- `git commit --no-verify` skips it. Aider commits that way unless you pass
+  `--git-commit-verify`.
+- Repos that set their own hooks path (like Husky) don't use it.
+- Rebases and cherry-picks aren't checked.
+- While it's on, `pre-commit install` refuses to run because a global hooks
+  path is set. Turn the guard off, install, then turn it back on.
+- A repo's own `reference-transaction` and `post-index-change` hooks don't run
+  while it's on. They fire on nearly every git command, so GitSwitch skips them
+  to keep git fast.
+
 ## What GitSwitch changes on your machine
 
 Switching only touches these, and only globally (repo-level `.git/config`
@@ -78,6 +126,7 @@ overrides still win):
 | `~/.gitconfig` | `user.name`, `user.email`, `user.signingkey`, `gpg.format = ssh`, `commit.gpgsign = true` |
 | `~/.ssh/config` | One block per provider host, between `# >>> GitSwitch managed block` markers. Any existing hand-written `Host github.com` (etc.) block is commented out, not deleted, so it can't override GitSwitch. Everything else in the file is left as is. |
 | `~/.ssh/gitswitch/` | Keys you created or pasted in GitSwitch. Keys you pointed at by path stay where they are. |
+| `~/.gitconfig` (only with **Block AI co-authors** on) | `core.hooksPath`, pointing at the `hooks` folder in GitSwitch's data directory. |
 
 The list of accounts lives in a small local database in the app's data folder.
 Nothing is sent anywhere except the SSH check and public-profile lookups to
