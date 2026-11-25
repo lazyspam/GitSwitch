@@ -46,9 +46,10 @@ export default function Background() {
       className="pointer-events-none absolute inset-0 overflow-hidden"
       style={{
         backgroundImage: [
-          "radial-gradient(420px 320px at 50% -8%, rgba(6,182,212,0.14), transparent 70%)",
-          "radial-gradient(360px 300px at 108% 108%, rgba(34,211,238,0.10), transparent 70%)",
-          "radial-gradient(320px 280px at -8% 108%, rgba(6,182,212,0.10), transparent 70%)",
+          // Large ellipses with an eased falloff, so the glow fades out with no visible edge.
+          "radial-gradient(720px 520px at 50% -12%, rgba(6,182,212,0.12), rgba(6,182,212,0.05) 40%, rgba(6,182,212,0.015) 70%, transparent 100%)",
+          "radial-gradient(620px 480px at 108% 110%, rgba(34,211,238,0.08), rgba(34,211,238,0.03) 45%, transparent 100%)",
+          "radial-gradient(580px 460px at -8% 110%, rgba(6,182,212,0.08), rgba(6,182,212,0.03) 45%, transparent 100%)",
         ].join(","),
       }}
     >
