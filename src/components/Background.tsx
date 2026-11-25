@@ -14,21 +14,37 @@ import {
   type Icon,
 } from "@phosphor-icons/react";
 
-/** Faint dev glyphs scattered around the edges, kept clear of the middle. */
-const GLYPHS: { icon: Icon; top: string; left: string; size: number; rotate: number }[] = [
-  { icon: TerminalWindow, top: "9%", left: "6%", size: 30, rotate: -12 },
-  { icon: GitBranch, top: "22%", left: "88%", size: 26, rotate: 10 },
-  { icon: BracketsCurly, top: "71%", left: "4%", size: 28, rotate: 8 },
-  { icon: Key, top: "84%", left: "79%", size: 24, rotate: -18 },
-  { icon: Bug, top: "47%", left: "93%", size: 20, rotate: 14 },
-  { icon: Hash, top: "38%", left: "2%", size: 18, rotate: -6 },
-  { icon: GitCommit, top: "6%", left: "63%", size: 22, rotate: 0 },
-  { icon: Code, top: "91%", left: "34%", size: 24, rotate: 6 },
-  { icon: LockKey, top: "60%", left: "84%", size: 18, rotate: -10 },
-  { icon: GitMerge, top: "55%", left: "11%", size: 20, rotate: 12 },
-  { icon: Cpu, top: "4%", left: "32%", size: 18, rotate: 8 },
-  { icon: GitPullRequest, top: "93%", left: "58%", size: 18, rotate: -8 },
+const GLYPHS: Icon[] = [
+  TerminalWindow,
+  GitBranch,
+  BracketsCurly,
+  Key,
+  Bug,
+  GitCommit,
+  Hash,
+  Code,
+  LockKey,
+  GitMerge,
+  Cpu,
+  GitPullRequest,
 ];
+
+// A sparse, even grid: every other row shifts half a step, each icon gets a
+// small fixed tilt. Same size and colour everywhere so nothing looks clumped.
+const GAP_X = 150;
+const GAP_Y = 120;
+const COLS = 14; // enough for a large maximised window; the rest is clipped
+const ROWS = 10;
+const CELLS = Array.from({ length: ROWS * COLS }, (_, i) => {
+  const row = Math.floor(i / COLS);
+  const col = i % COLS;
+  return {
+    Glyph: GLYPHS[(row * 5 + col * 7) % GLYPHS.length],
+    left: col * GAP_X + (row % 2) * (GAP_X / 2) + 40,
+    top: row * GAP_Y + 36,
+    rotate: (((row * 13 + col * 7) % 5) - 2) * 8,
+  };
+});
 
 /**
  * The app-wide ambient background. Lives at the shell level so the entire
@@ -53,13 +69,13 @@ export default function Background() {
         ].join(","),
       }}
     >
-      {GLYPHS.map(({ icon: Glyph, top, left, size, rotate }, i) => (
+      {CELLS.map(({ Glyph, left, top, rotate }, i) => (
         <Glyph
           key={i}
-          size={size}
+          size={20}
           weight="thin"
           className="absolute text-cyan-200/[0.07]"
-          style={{ top, left, transform: `rotate(${rotate}deg)` }}
+          style={{ left, top, transform: `rotate(${rotate}deg)` }}
         />
       ))}
     </div>
