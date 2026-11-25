@@ -14,49 +14,21 @@ import {
   type Icon,
 } from "@phosphor-icons/react";
 
-const GLYPHS: Icon[] = [
-  TerminalWindow,
-  GitBranch,
-  BracketsCurly,
-  Key,
-  Bug,
-  GitCommit,
-  Hash,
-  Code,
-  LockKey,
-  GitMerge,
-  Cpu,
-  GitPullRequest,
+/** Faint dev glyphs scattered around the edges, kept clear of the middle. */
+const GLYPHS: { icon: Icon; top: string; left: string; size: number; rotate: number }[] = [
+  { icon: TerminalWindow, top: "9%", left: "6%", size: 30, rotate: -12 },
+  { icon: GitBranch, top: "22%", left: "88%", size: 26, rotate: 10 },
+  { icon: BracketsCurly, top: "71%", left: "4%", size: 28, rotate: 8 },
+  { icon: Key, top: "84%", left: "79%", size: 24, rotate: -18 },
+  { icon: Bug, top: "47%", left: "93%", size: 20, rotate: 14 },
+  { icon: Hash, top: "38%", left: "2%", size: 18, rotate: -6 },
+  { icon: GitCommit, top: "6%", left: "63%", size: 22, rotate: 0 },
+  { icon: Code, top: "91%", left: "34%", size: 24, rotate: 6 },
+  { icon: LockKey, top: "60%", left: "84%", size: 18, rotate: -10 },
+  { icon: GitMerge, top: "55%", left: "11%", size: 20, rotate: 12 },
+  { icon: Cpu, top: "4%", left: "32%", size: 18, rotate: 8 },
+  { icon: GitPullRequest, top: "93%", left: "58%", size: 18, rotate: -8 },
 ];
-
-/** Faint, so the doodles read as texture behind the UI and never as content. */
-const COLORS = [
-  "text-cyan-300/[0.09]",
-  "text-rose-300/[0.08]",
-  "text-amber-300/[0.08]",
-  "text-emerald-300/[0.08]",
-];
-
-const GAP_X = 72;
-const GAP_Y = 60;
-// Enough to cover a maximised window on a large screen; extra cells are clipped.
-const COLS = 30;
-const ROWS = 22;
-
-/** A staggered doodle wallpaper: every other row shifts half a step, and each
- *  icon gets a fixed tilt and colour from its position (deterministic, so it
- *  never reshuffles between renders). */
-const CELLS = Array.from({ length: ROWS * COLS }, (_, i) => {
-  const row = Math.floor(i / COLS);
-  const col = i % COLS;
-  return {
-    Glyph: GLYPHS[(row * 5 + col * 7) % GLYPHS.length],
-    color: COLORS[(row + col * 3) % COLORS.length],
-    left: col * GAP_X + (row % 2) * (GAP_X / 2) + 12,
-    top: row * GAP_Y + 12,
-    rotate: (((row * 13 + col * 7) % 7) - 3) * 7,
-  };
-});
 
 /**
  * The app-wide ambient background. Lives at the shell level so the entire
@@ -65,7 +37,7 @@ const CELLS = Array.from({ length: ROWS * COLS }, (_, i) => {
  * Static radial-gradient glows instead of animated blur() blobs: paints once,
  * never repaints, and costs nothing to composite on macOS/Windows webviews
  * where filter blur is expensive. ponytail: traded pointer drift for perf.
- * The doodles are static too.
+ * The glyphs are static too.
  */
 export default function Background() {
   return (
@@ -80,13 +52,13 @@ export default function Background() {
         ].join(","),
       }}
     >
-      {CELLS.map(({ Glyph, color, left, top, rotate }, i) => (
+      {GLYPHS.map(({ icon: Glyph, top, left, size, rotate }, i) => (
         <Glyph
           key={i}
-          size={20}
-          weight="regular"
-          className={`absolute ${color}`}
-          style={{ left, top, transform: `rotate(${rotate}deg)` }}
+          size={size}
+          weight="thin"
+          className="absolute text-cyan-200/[0.07]"
+          style={{ top, left, transform: `rotate(${rotate}deg)` }}
         />
       ))}
     </div>
