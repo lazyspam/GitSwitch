@@ -70,52 +70,18 @@ the window keeps GitSwitch in the tray; use **Quit** from the tray to exit.
 
 ## Remove AI co-authors
 
-**Settings → Commits → Remove AI co-authors** quietly deletes the
-`Co-authored-by:` lines that AI agents add to your commits, before the commit
-is saved. The commit goes through, and it's yours alone. Pick the agents, or add
-any name or email of your own:
-
-| Agent | Line it adds | Matched by |
-| --- | --- | --- |
-| Claude Code | `Co-authored-by: Claude <noreply@anthropic.com>` | `noreply@anthropic.com` |
-| Codex CLI | `Co-authored-by: Codex <noreply@openai.com>` | `noreply@openai.com` |
-| Cursor | `Co-authored-by: Cursor <cursoragent@cursor.com>` | `cursoragent@cursor.com` |
-| GitHub Copilot | `Co-authored-by: Copilot <…+Copilot@users.noreply.github.com>` | `Copilot@users.noreply.github.com` |
-
-Cloud agents (Copilot's coding agent, Devin, Jules, Cursor's cloud agents)
-commit on their own machines, so a hook on yours never sees those commits.
-
-The terminal shows what was taken out:
+**Settings → Commits** strips the `Co-authored-by:` lines AI agents add, before
+the commit is saved. Pick Claude Code, Codex, Cursor or Copilot, or add any
+name or email.
 
 ```text
 $ git commit -m "feat: add login" -m "Co-authored-by: Claude <noreply@anthropic.com>"
 GitSwitch removed: Co-authored-by: Claude <noreply@anthropic.com>
-[main 1a2b3c4] feat: add login
 ```
 
-Matching ignores case and only touches `Co-authored-by:` lines, so a message
-that just mentions a name is left alone, and other co-authors stay. A commit
-whose **author** matches is stopped instead, because a hook can't change the
-author.
-
-GitSwitch writes the hooks itself when you turn this on, so it works the same
-on Linux, macOS, and Windows with nothing else to install. It sets a global
-`core.hooksPath` to a folder in its data directory. Every hook there hands off
-to the hook git would have run without GitSwitch, so your repos' own hooks
-(and any global hooks path you had before) keep working. Turning it off puts
-your previous `core.hooksPath` back.
-
-Limits:
-
-- `git commit --no-verify` skips it. Aider commits that way unless you pass
-  `--git-commit-verify`.
-- Repos that set their own hooks path (like Husky) don't use it.
-- Rebases and cherry-picks aren't checked.
-- While it's on, `pre-commit install` refuses to run because a global hooks
-  path is set. Turn the guard off, install, then turn it back on.
-- A repo's own `reference-transaction` and `post-index-change` hooks don't run
-  while it's on. They fire on nearly every git command, so GitSwitch skips them
-  to keep git fast.
+It works in every repo through a global `core.hooksPath`, and your repos' own
+hooks still run. A commit whose author matches is stopped instead. Skipped by
+`--no-verify` and by repos with their own hooks path (Husky).
 
 ## What GitSwitch changes on your machine
 
