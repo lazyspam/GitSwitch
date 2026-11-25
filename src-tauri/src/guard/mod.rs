@@ -174,6 +174,18 @@ pub fn apply_in(dir: &Path, enabled: bool, blocked: &[String]) -> Result<GuardSt
     Ok(state_in(dir))
 }
 
+/// At startup: if the guard is on, rewrite the hook files so a GitSwitch update
+/// also updates the hooks every repo is already using.
+pub fn refresh(app: &AppHandle) {
+    if let Ok(dir) = hooks_dir(app) {
+        if state_in(&dir).enabled {
+            if let Err(e) = install_scripts(&dir) {
+                eprintln!("commit guard refresh failed: {e}");
+            }
+        }
+    }
+}
+
 #[tauri::command(async)]
 pub fn get_commit_guard(app: AppHandle) -> Result<GuardState, String> {
     Ok(state_in(&hooks_dir(&app)?))

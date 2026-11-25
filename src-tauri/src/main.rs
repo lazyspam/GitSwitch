@@ -46,6 +46,8 @@ fn main() {
             std::thread::spawn(|| {
                 ssh::fs::purge_stale_staged(std::time::Duration::from_secs(60 * 60))
             });
+            let guard_handle = app.handle().clone();
+            std::thread::spawn(move || guard::refresh(&guard_handle));
 
             let handle = app.handle().clone();
             app.handle().run_on_main_thread(move || {
