@@ -6,6 +6,7 @@ import { useHideEmail, setHideEmail } from "./Email";
 import { Toggle } from "./ui/Toggle";
 import { Button } from "./ui/Button";
 import { SectionHeading } from "./ui/SectionHeading";
+import CommitGuard from "./CommitGuard";
 import { container, item } from "../utils/motion";
 import { motion, useReducedMotion } from "motion/react";
 
@@ -83,6 +84,12 @@ export default function Settings({ onClearAllProfiles }: SettingsProps) {
               onChange={setHideEmail}
             />
           </div>
+        </motion.section>
+
+        {/* Commits Category */}
+        <motion.section variants={item}>
+          <SectionHeading className="mb-3">Commits</SectionHeading>
+          <CommitGuard />
         </motion.section>
 
         {/* System Category */}

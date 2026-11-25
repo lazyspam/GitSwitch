@@ -68,6 +68,21 @@ The **⋮** menu on each account also has:
 You can also switch from the **tray icon** without opening the window. Closing
 the window keeps GitSwitch in the tray; use **Quit** from the tray to exit.
 
+## Remove AI co-authors
+
+**Settings → Commits** strips the `Co-authored-by:` lines AI agents add, before
+the commit is saved. Pick Claude Code, Codex, Cursor or Copilot, or add any
+name or email.
+
+```text
+$ git commit -m "feat: add login" -m "Co-authored-by: Claude <noreply@anthropic.com>"
+GitSwitch removed: Co-authored-by: Claude <noreply@anthropic.com>
+```
+
+It works in every repo through a global `core.hooksPath`, and your repos' own
+hooks still run. A commit whose author matches is stopped instead. Skipped by
+`--no-verify` and by repos with their own hooks path (Husky).
+
 ## What GitSwitch changes on your machine
 
 Switching only touches these, and only globally (repo-level `.git/config`
@@ -78,6 +93,7 @@ overrides still win):
 | `~/.gitconfig` | `user.name`, `user.email`, `user.signingkey`, `gpg.format = ssh`, `commit.gpgsign = true` |
 | `~/.ssh/config` | One block per provider host, between `# >>> GitSwitch managed block` markers. Any existing hand-written `Host github.com` (etc.) block is commented out, not deleted, so it can't override GitSwitch. Everything else in the file is left as is. |
 | `~/.ssh/gitswitch/` | Keys you created or pasted in GitSwitch. Keys you pointed at by path stay where they are. |
+| `~/.gitconfig` (only with **Remove AI co-authors** on) | `core.hooksPath`, pointing at the `hooks` folder in GitSwitch's data directory. |
 
 The list of accounts lives in a small local database in the app's data folder.
 Nothing is sent anywhere except the SSH check and public-profile lookups to

@@ -92,6 +92,16 @@ export type GeneratedKey = { keyPath: string; publicKey: string };
 
 export type HostInfo = { username: string; avatar: string | null };
 
+/** The commit guard: a global git hook that blocks listed authors and co-authors. */
+export type CommitGuard = {
+  /** Read from git config: is `core.hooksPath` pointing at GitSwitch's hooks? */
+  enabled: boolean;
+  /** Names or emails; matched case-insensitively against the author and Co-authored-by lines. */
+  blocked: string[];
+  /** A global hooks path that isn't ours. It keeps running after the check. */
+  otherHooksPath: string | null;
+};
+
 // ── Command bridge ───────────────────────────────────────────────────────────
 
 export const api = {
@@ -135,4 +145,7 @@ export const api = {
 
   // Git
   gitConfig: () => invoke<string>("git_config"),
+  getCommitGuard: () => invoke<CommitGuard>("get_commit_guard"),
+  setCommitGuard: (enabled: boolean, blocked: string[]) =>
+    invoke<CommitGuard>("set_commit_guard", { enabled, blocked }),
 };

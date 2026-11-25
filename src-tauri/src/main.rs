@@ -3,6 +3,7 @@
 mod cli;
 mod database;
 mod git;
+mod guard;
 mod host;
 mod models;
 mod paths;
@@ -45,6 +46,8 @@ fn main() {
             std::thread::spawn(|| {
                 ssh::fs::purge_stale_staged(std::time::Duration::from_secs(60 * 60))
             });
+            let guard_handle = app.handle().clone();
+            std::thread::spawn(move || guard::refresh(&guard_handle));
 
             let handle = app.handle().clone();
             app.handle().run_on_main_thread(move || {
@@ -73,6 +76,8 @@ fn main() {
         .invoke_handler(tauri::generate_handler![
             host::get_host_info,
             git::git_config,
+            guard::get_commit_guard,
+            guard::set_commit_guard,
             ssh::keys::generate_ssh_key,
             ssh::keys::commit_key,
             ssh::open_ssh_folder,
