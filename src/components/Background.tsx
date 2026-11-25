@@ -29,20 +29,33 @@ const GLYPHS: Icon[] = [
   GitPullRequest,
 ];
 
-// A sparse, even grid: every other row shifts half a step, each icon gets a
-// small fixed tilt. Same size and colour everywhere so nothing looks clumped.
-const GAP_X = 150;
-const GAP_Y = 120;
+// Random but spread out: the window is split into cells and each icon lands at a
+// random spot inside its own cell (jittered sampling), so there are no clumps
+// and no empty patches. A fixed seed keeps the layout the same on every launch.
+const CELL_X = 150;
+const CELL_Y = 120;
 const COLS = 14; // enough for a large maximised window; the rest is clipped
 const ROWS = 10;
+
+function seeded(seed: number) {
+  // mulberry32
+  return () => {
+    seed = (seed + 0x6d2b79f5) | 0;
+    let t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+const rand = seeded(20261125);
 const CELLS = Array.from({ length: ROWS * COLS }, (_, i) => {
   const row = Math.floor(i / COLS);
   const col = i % COLS;
   return {
-    Glyph: GLYPHS[(row * 5 + col * 7) % GLYPHS.length],
-    left: col * GAP_X + (row % 2) * (GAP_X / 2) + 40,
-    top: row * GAP_Y + 36,
-    rotate: (((row * 13 + col * 7) % 5) - 2) * 8,
+    Glyph: GLYPHS[Math.floor(rand() * GLYPHS.length)],
+    left: col * CELL_X + 15 + rand() * (CELL_X - 50),
+    top: row * CELL_Y + 10 + rand() * (CELL_Y - 40),
+    rotate: Math.round((rand() - 0.5) * 50),
   };
 });
 
